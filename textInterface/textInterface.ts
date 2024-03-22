@@ -25,7 +25,7 @@ export class TextInterface {
   private inputWrap : HTMLDivElement;
   private outputting : boolean;
   
-  constructor (element = document.body) {
+  constructor (element = document.body, title='Text Interface') {
     this.outputQueue = [];
     this.div = document.createElement('div') as HTMLDivElement;
     this.div.classList.add('text-interface');
@@ -33,7 +33,7 @@ export class TextInterface {
       this.div
     );
     this.div.innerHTML = `
-      <h2 class="ti-title">Text Interface</h2>
+      <h2 class="ti-title">${title}</h2>
       <div class="output">
       </div>
       <div class="input-wrap">

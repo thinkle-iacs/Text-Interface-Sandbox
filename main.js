@@ -1,8 +1,10 @@
 import './style.css'
 import {TextInterface} from './textInterface';
 
+
+let app = document.querySelector('#app');
 // Create a new "Text Interface"
-let ti = new TextInterface();
+let ti = new TextInterface(app, "Example Text Game");
 ti.output("What is your name?");
 let name = await ti.readText()
 ti.output("Hello, "+name);
