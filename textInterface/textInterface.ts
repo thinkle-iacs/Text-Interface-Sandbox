@@ -1,15 +1,23 @@
 import './textInterface.css';
 
-const yesWords = ['y','Yes','YES','t','TRUE'];
-const noWords = ['n','false','no','nope','null'];
+const yesWords = ['yes','yeah','yep','yup','true','t','y','aye','yup'];
+const noWords = ['no','n','false','f','nope','nah'];
 
 export class TextInterface {
   
   listener : (arg0: string)=>void | null;  
-  outputQueue : [string,boolean?][];
+  /*
+  * the number of milliseconds taken to display
+  * text passed to the output method 
+  */
   outputAnimationLength : number = 800;
+  
+  /* 
+  * The delay before outputting text 
+  */
   outputDelay : number = 300;
   
+  private outputQueue : ['element'|'text',any?,boolean?][];
   private div : HTMLDivElement;
   private inputEl : HTMLDivElement;
   private outputEl : HTMLDivElement;
@@ -19,7 +27,7 @@ export class TextInterface {
   
   constructor (element = document.body) {
     this.outputQueue = [];
-    this.div = document.createElement('div');
+    this.div = document.createElement('div') as HTMLDivElement;
     this.div.classList.add('text-interface');
     element.appendChild(
       this.div
@@ -37,10 +45,10 @@ export class TextInterface {
           <div class="placeholder">Type and hit return...</div>
       </div>
     `
-    this.inputWrap = this.div.querySelector('.input-wrap');
-    this.inputEl = this.div.querySelector('.input');
-    this.outputEl = this.div.querySelector('.output');
-    this.placeholderEl = this.div.querySelector('.placeholder');
+    this.inputWrap = this.div.querySelector('.input-wrap') as HTMLDivElement;
+    this.inputEl = this.div.querySelector('.input') as HTMLDivElement;
+    this.outputEl = this.div.querySelector('.output') as HTMLDivElement;
+    this.placeholderEl = this.div.querySelector('.placeholder') as HTMLDivElement;
     this.setupInputListener();
     //this.inputEl.focus();
   }
@@ -54,36 +62,33 @@ export class TextInterface {
     this.outputEl.innerHTML = '';
   }
   
-  async readChoice (choices :string [],
-                  prompt='Choose one of the following:', error='You must choose one of the options!') {
-    let n = 0;
+  async readChoice (choices : string[],
+                  prompt='Choose one of the following:', 
+                  error='You must choose one of the options!') {
     this.output(prompt);
     for (let n=0; n<choices.length; n++) {
       this.output(`${n+1}. ${choices[n]}`)
     }
-    this.output('Type the number of your choice');    
     let textInput = await this.readText();
+    // If they've typed the choice, just return the choice
     if (choices.indexOf(textInput)>-1) {
       return textInput;
     }
+    // Otherwise, look for a number as an answer
     textInput = textInput.replace(/\D/g,'');
-    if (textInput === '') {
-      this.output(error);
-      let correction = await this.readChoice(choices,prompt,error);
-      return correction;
+    if (textInput != '') {
+      let number = Number(textInput);
+      if (!isNaN(number) && number <= choices.length && number > 0) {
+        return choices[Math.floor(number)-1];
+      } 
     }
-    let number = Number(textInput);
-    if (!isNaN(number) && number <= choices.length && number > 0) {
-      return choices[Math.floor(number)-1];
-    } else {
-      this.output(error);
-      let correction = await this.readChoice(choices,prompt,error);
-      return correction
-    }
-  }
+    this.output(error);
+    let correction = await this.readChoice(choices,prompt,error);
+    return correction
+  }  
   
-  async readYesOrNo (errorMessage = 'Say yes or no!') {    
-    let text : string = await this.readText();
+  async readYesOrNo (errorMessage = 'Say yes or no!') {
+    let text = await this.readText();
     text = text.toLowerCase();
     text = text.replace(/\s+/,'');
     if (yesWords.indexOf(text)>-1) {
@@ -114,16 +119,49 @@ export class TextInterface {
   readText () : Promise<string> {
     //this.inputEl.focus();
     this.inputWrap.classList.add('active');
+    this.inputWrap.scrollIntoView()
     return new Promise(
       (resolve, reject) => {
         this.listener = resolve
       }
     )
   }
-  output (text, echo=false) {
+
+  showElement (element : HTMLElement) {
+    if (this.outputting) {
+      this.outputQueue.push(['element',element])
+    } else {
+      this.outputting = true;
+      this.outputEl.appendChild(element);
+      element.scrollIntoView({behavior:'smooth'})
+      setTimeout(
+        ()=>{
+          this.outputting = false;
+          this.doNextOutput();
+        },
+        this.outputDelay
+      );
+    }
+  }
+
+  showHTML (arbitraryHTML) {
+    let div = document.createElement('div');
+    div.innerHTML = arbitraryHTML;
+    this.showElement(div);
+  }
+
+  showImage (src : string, alt='An image') {    
+    let img = document.createElement('img');
+    img.setAttribute('src',src);
+    img.setAttribute('alt',alt);
+    this.showElement(img);    
+  }
+  
+  output (text : string, echo=false) {
+    text = '' + text;
     /* If we are already outputting, wait... */
     if (this.outputting) {
-      this.outputQueue.push([text,echo]);
+      this.outputQueue.push(['text',text,echo]);
     } else {      
       let output = document.createElement('div')
       output.classList.add('output');
@@ -137,7 +175,7 @@ export class TextInterface {
         let delay = this.outputAnimationLength / text.length;
         const animateOutput = () => {          
           output.textContent += text[0] || '';
-          text = text.substr(1);
+          text = text.substring(1);
           if (text.length) {
             setTimeout(
               animateOutput,
@@ -145,16 +183,27 @@ export class TextInterface {
             )
           } else {
             this.outputting = false;
-            if (this.outputQueue.length) {
-              let next = this.outputQueue[0];
-              this.outputQueue = this.outputQueue.slice(1);
-              this.output(...next);
-            }
+            this.doNextOutput();
           }
         }                      
         setTimeout(animateOutput,this.outputDelay)
       }
       this.outputEl.appendChild(output);
+      output.scrollIntoView({behavior:'smooth'})
+    }
+  }
+
+  private doNextOutput () {
+    if (this.outputQueue.length) {
+      let next = this.outputQueue[0];
+      this.outputQueue = this.outputQueue.slice(1);
+      let nextMode = next[0];
+      let nextArgs = next.slice(1);
+      if (nextMode=='text') {
+        this.output(...nextArgs)
+      } else { // image
+        this.showElement(...nextArgs)
+      }
     }
   }
   
