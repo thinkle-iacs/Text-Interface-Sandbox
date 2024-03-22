@@ -90,3 +90,22 @@ if (answer == 4) {
    ti.output("I'm afraid that is wrong");
 }
 ```
+
+## Writing Other Output
+
+You can also write some other output using
+
+```typescript
+ti.showImage("https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg");
+```
+
+Or arbitrary HTML with
+
+```typescript
+ti.showHTML(`
+<ul>
+  <li>Here is a list</li>
+  <li>of items</li>
+  <li>in html</li>
+</ul>`
+  );
