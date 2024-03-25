@@ -24,6 +24,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
+/*
+* This code was provided by my teacher:
+*  */
 
 .text-interface {
   padding-left : 1em;
@@ -88,3 +91,9 @@
     transform: scale(1);
   }
 }
+
+/**
+*
+* End Code provided by teacher
+*
+**/

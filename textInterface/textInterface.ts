@@ -1,4 +1,6 @@
 /*
+* This code was provided by my teacher:
+* 
 * Library code by Tom Hinkle
 * https://www.tomhinkle.net/proj/text-interface
 * 
