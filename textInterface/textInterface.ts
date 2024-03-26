@@ -146,7 +146,7 @@ export class TextInterface {
   }
   
   readText () : Promise<string> {
-    //this.inputEl.focus();
+    this.inputEl.focus();
     this.inputWrap.classList.add('active');
     this.inputWrap.scrollIntoView()
     return new Promise(
