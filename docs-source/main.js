@@ -1,4 +1,4 @@
-import { TextInterface } from "../textInterface";
+import { TextInterface } from "text-interface";
 let app = document.querySelector("#app");
 const ti = new TextInterface(app);
 

@@ -9,6 +9,7 @@
     "serve:docs": "vite preview --config vite.docs.config.js"
   },
   "dependencies": {
+    "text-interface": "^1.0.5",
     "vite": "^4.1.1"
   }
 }
